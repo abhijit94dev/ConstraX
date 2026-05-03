@@ -1,0 +1,257 @@
+/* =====================================================
+   CONSTRUCTION TRACKER - STYLE.CSS
+   ===================================================== */
+
+/* ---- Base ---- */
+:root {
+  --primary-dark: #1a1a2e;
+  --primary-mid: #302b63;
+  --primary-light: #667eea;
+  --accent-green: #00e676;
+  --accent-red: #ef4444;
+  --bg: #f0f2f5;
+  --card-bg: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --border-light: #f0f0f0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 25px 60px rgba(0, 0, 0, 0.2);
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 24px;
+  --transition: all 0.2s ease;
+}
+
+/* ---- Utility Classes ---- */
+.hide {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Gradient Text ---- */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-mid), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- Card Style ---- */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- Smooth Transition for All Interactive Elements ---- */
+button, 
+a, 
+.nav-item, 
+.bnav-item,
+input,
+.toggle-switch {
+  transition: var(--transition);
+}
+
+/* ---- Focus Styles (Accessibility) ---- */
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---- Hide scrollbar for clean modals ---- */
+.modal::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* ---- Table Striped Rows ---- */
+tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* ---- Print-friendly (for share/capture) ---- */
+@media print {
+  .sidebar,
+  .top-bar,
+  .bottom-nav,
+  .modal-overlay,
+  .spinner-overlay {
+    display: none !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  body {
+    background: #fff;
+  }
+}
+
+/* ---- Animation for page transitions ---- */
+.page-section {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Notification Toast ---- */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 999;
+  box-shadow: var(--shadow-md);
+  animation: slideInRight 0.3s ease;
+  max-width: 360px;
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.toast.info {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ---- Mobile Responsive Adjustments ---- */
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+  }
+  
+  .toast {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    font-size: 13px;
+  }
+}
+
+/* ---- Empty State ---- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+/* ---- Confirm Dialog (custom) ---- */
+.confirm-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+
+.confirm-box {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.confirm-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.confirm-box p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.confirm-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.confirm-delete {
+  background: #dc2626;
+  color: #fff;
+}

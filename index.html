@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Construction Tracker</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2canvas for report sharing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ===== CUSTOM RESET & BASE ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    /* ===== LOGIN ===== */
+    #loginPage {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      padding: 20px;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #302b63, #0f0c29);
+      -webkit-background-clip: text;
+      background-clip: text;
+      /* ✅ ADD THIS */
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-card .sub {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: #302b63;
+      box-shadow: 0 0 0 3px rgba(48, 43, 99, 0.1);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #302b63, #24243e);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(48, 43, 99, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .login-error {
+      color: #dc2626;
+      font-size: 13px;
+      text-align: center;
+      margin-top: 12px;
+      min-height: 20px;
+    }
+
+    .login-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn-primary.loading .login-spinner {
+      display: inline-block;
+    }
+
+    .btn-primary.loading .btn-text {
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ===== APP LAYOUT ===== */
+    #app {
+      display: none;
+      min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR (Desktop) ===== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 240px;
+      height: 100vh;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 24px 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-brand {
+      padding: 0 20px 24px;
+      font-size: 20px;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-brand .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00e676;
+      display: inline-block;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .nav-item .icon {
+      font-size: 20px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar-user .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .sidebar-user .user-info {
+      font-size: 13px;
+    }
+
+    .sidebar-user .user-info .name {
+      font-weight: 600;
+    }
+
+    .sidebar-user .user-info .role {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 240px;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    .top-bar {
+      background: #fff;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .top-bar .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .api-led {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .api-led .led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #9ca3af;
+      transition: background 0.3s;
+    }
+
+    .api-led .led.green {
+      background: #00e676;
+      box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+    }
+
+    .api-led .led.red {
+      background: #ef4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    }
+
+    .content-area {
+      padding: 24px 28px;
+      max-width: 1200px;
+    }
+
+    /* ===== STATS CARDS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-top: 4px;
+    }
+
+    /* ===== FORM CARD ===== */
+    .form-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      margin-bottom: 28px;
+    }
+
+    .form-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #1a1a2e;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .form-row .form-group {
+      margin-bottom: 0;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      overflow-x: auto;
+    }
+
+    .table-wrapper h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #1a1a2e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: #f8f9fa;
+    }
+
+    th {
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #4b5563;
+    }
+
+    tr:hover {
+      background: #f9fafb;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-admin {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .badge-user {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badge-active {
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    .badge-inactive {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .btn-sm {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-sm+.btn-sm {
+      margin-left: 6px;
+    }
+
+    .btn-edit {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .btn-edit:hover {
+      background: #bfdbfe;
+    }
+
+    .btn-delete {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .btn-delete:hover {
+      background: #fecaca;
+    }
+
+    .btn-toggle {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-toggle:hover {
+      background: #e5e7eb;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+    }
+
+    .btn-cancel {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #302b63, #24243e);
+      color: #fff;
+    }
+
+    /* ===== BOTTOM NAV (Mobile) ===== */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      z-index: 100;
+      padding: 6px 0;
+      padding-bottom: max(6px, env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .bottom-nav-inner {
+      display: flex;
+      justify-content: space-around;
+    }
+
+    .bnav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: color 0.15s;
+      border: none;
+      background: none;
+    }
+
+    .bnav-item .icon {
+      font-size: 22px;
+    }
+
+    .bnav-item.active {
+      color: #302b63;
+      font-weight: 600;
+    }
+
+    .bnav-item.active .icon {
+      color: #302b63;
+    }
+
+    /* ===== REPORT SECTION ===== */
+    #reportSection {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    #reportSection h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .report-filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      align-items: end;
+    }
+
+    .report-filters .form-group {
+      flex: 1;
+      min-width: 140px;
+      margin-bottom: 0;
+    }
+
+    .report-filters .form-group input {
+      padding: 10px 14px;
+    }
+
+    .report-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .report-summary-item {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .report-summary-item .val {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .report-summary-item .lbl {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .btn-share {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-share:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding-bottom: 70px;
+      }
+
+      .top-bar {
+        padding: 12px 16px;
+      }
+
+      .top-bar .page-title {
+        font-size: 17px;
+      }
+
+      .content-area {
+        padding: 16px;
+      }
+
+      .bottom-nav {
+        display: block;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 14px;
+      }
+
+      .stat-card .stat-value {
+        font-size: 22px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .login-card {
+        padding: 28px 20px;
+      }
+
+      .report-filters .form-group {
+        min-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .modal {
+        padding: 24px 16px;
+      }
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c4c4c4;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a0a0a0;
+    }
+
+    /* ===== SPINNER ===== */
+    .spinner-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.7);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-overlay.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #302b63;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    /* User management */
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar-sm {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #d1d5db;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+
+    .toggle-switch.active {
+      background: #059669;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(20px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ==================== LOGIN PAGE ==================== -->
+  <div id="loginPage">
+    <div class="login-card">
+      <h1>🏗️ ConstraX</h1>
+      <p class="sub">Construction Daily Tracker</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUsername">Username</label>
+          <input type="text" id="loginUsername" placeholder="Enter username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" required
+            autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-primary" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <span class="login-spinner"></span>
+        </button>
+      </form>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- ==================== APP ==================== -->
+  <div id="app">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="logo-dot"></span>
+        ConstraX
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+          <span class="icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" data-page="entry" onclick="switchPage('entry')">
+          <span class="icon">➕</span> Add Entry
+        </div>
+        <div class="nav-item" data-page="reports" onclick="switchPage('reports')">
+          <span class="icon">📈</span> Reports
+        </div>
+        <div class="nav-item admin-only" data-page="users" onclick="switchPage('users')" style="display:none;">
+          <span class="icon">👥</span> Users
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="sidebarAvatar">U</div>
+          <div class="user-info">
+            <div class="name" id="sidebarName">User</div>
+            <div class="role" id="sidebarRole">Role</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">🚪 Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <div class="page-title" id="pageTitle">Dashboard</div>
+        </div>
+        <div class="top-bar-right">
+          <div class="api-led">
+            <span class="led" id="apiLed"></span>
+            <span id="apiStatusText">Checking...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+
+        <!-- ========== DASHBOARD PAGE ========== -->
+        <div class="page-section" id="page-dashboard">
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-label">Total Entries</div>
+              <div class="stat-value" id="statEntries">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Labour</div>
+              <div class="stat-value" id="statLabour">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Mistri</div>
+              <div class="stat-value" id="statMistri">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Cement</div>
+              <div class="stat-value" id="statCement">0</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <h3>📋 Recent Entries</h3>
+            <div id="dashboardTableContainer">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Building</th>
+                    <th>Labour</th>
+                    <th>Mistri</th>
+                    <th>Cement</th>
+                    <th>Notes</th>
+                    <th id="dashActionsHead" style="display:none;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== ENTRY PAGE ========== -->
+        <div class="page-section hide" id="page-entry">
+          <div class="form-card">
+            <h3>📝 New Daily Entry</h3>
+            <form id="entryForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="entryDate">Date</label>
+                  <input type="date" id="entryDate" required>
+                </div>
+                <div class="form-group">
+                  <label for="entryBuilding">Building / Site</label>
+                  <input type="text" id="entryBuilding" placeholder="e.g. Tower A" required>
+                </div>
+                <div class="form-group">
+                  <label for="entryLabour">Labour Count</label>
+                  <input type="number" id="entryLabour" min="0" value="0">
+                </div>
+                <div class="form-group">
+                  <label for="entryMistri">Mistri Count</label>
+                  <input type="number" id="entryMistri" min="0" value="0">
+                </div>
+                <div class="form-group">
+                  <label for="entryCement">Cement (bags)</label>
+                  <input type="number" id="entryCement" min="0" value="0">
+                </div>
+                <div class="form-group">
+                  <label for="entryNotes">Notes</label>
+                  <input type="text" id="entryNotes" placeholder="Optional notes">
+                </div>
+              </div>
+              <button type="submit" class="btn-primary" style="margin-top:18px;width:auto;padding:12px 32px;">
+                <span class="btn-text">➕ Add Entry</span>
+                <span class="login-spinner"></span>
+              </button>
+            </form>
+          </div>
+
+          <div class="table-wrapper">
+            <h3>📋 My Entries</h3>
+            <div id="entryTableContainer">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Building</th>
+                    <th>Labour</th>
+                    <th>Mistri</th>
+                    <th>Cement</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="entryTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== REPORTS PAGE ========== -->
+        <div class="page-section hide" id="page-reports">
+          <div id="reportSection">
+            <h3>📊 Generate Report</h3>
+            <div class="report-filters">
+              <div class="form-group">
+                <label for="reportFrom">From Date</label>
+                <input type="date" id="reportFrom">
+              </div>
+              <div class="form-group">
+                <label for="reportTo">To Date</label>
+                <input type="date" id="reportTo">
+              </div>
+              <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="generateReport()">
+                🔍 Generate
+              </button>
+              <button class="btn-share" onclick="shareReport()">
+                📤 Share Report
+              </button>
+            </div>
+
+            <div id="reportResults" style="display:none;">
+              <div class="report-summary" id="reportSummary"></div>
+              <div class="table-wrapper" style="box-shadow:none;padding:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Building</th>
+                      <th>Labour</th>
+                      <th>Mistri</th>
+                      <th>Cement</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== USERS PAGE (Admin) ========== -->
+        <div class="page-section hide" id="page-users">
+          <div class="table-wrapper">
+            <h3>👥 User Management</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV (Mobile) -->
+    <nav class="bottom-nav">
+      <div class="bottom-nav-inner">
+        <button class="bnav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+          <span class="icon">📊</span> Dashboard
+        </button>
+        <button class="bnav-item" data-page="entry" onclick="switchPage('entry')">
+          <span class="icon">➕</span> Entry
+        </button>
+        <button class="bnav-item" data-page="reports" onclick="switchPage('reports')">
+          <span class="icon">📈</span> Reports
+        </button>
+        <button class="bnav-item admin-only" data-page="users" onclick="switchPage('users')" style="display:none;">
+          <span class="icon">👥</span> Users
+        </button>
+      </div>
+    </nav>
+
+    <!-- ===== MODAL (Edit) ===== -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal">
+        <h2>✏️ Edit Entry</h2>
+        <form id="editForm">
+          <div class="form-group">
+            <label for="editDate">Date</label>
+            <input type="date" id="editDate" required>
+          </div>
+          <div class="form-group">
+            <label for="editBuilding">Building</label>
+            <input type="text" id="editBuilding" required>
+          </div>
+          <div class="form-group">
+            <label for="editLabour">Labour</label>
+            <input type="number" id="editLabour" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label for="editMistri">Mistri</label>
+            <input type="number" id="editMistri" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label for="editCement">Cement</label>
+            <input type="number" id="editCement" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label for="editNotes">Notes</label>
+            <input type="text" id="editNotes">
+          </div>
+          <input type="hidden" id="editRowIndex">
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+            <button type="submit" class="btn-save">💾 Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== LOADING SPINNER ===== -->
+    <div class="spinner-overlay" id="globalSpinner">
+      <div class="spinner"></div>
+    </div>
+
+  </div>
+  <!-- ===== Share Template ===== -->
+
+  <div id="shareTemplate" style="
+  position:absolute;
+  left:-9999px;
+  top:0;
+  width:700px;
+  background:#f9fafb;
+  padding:24px;
+  font-family:Segoe UI, sans-serif;
+  color:#111;
+">
+
+    <!-- DATE RANGE -->
+    <h3 id="shareDateRange" style="text-align:center;margin-bottom:20px;"></h3>
+
+    <!-- STATS -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;">
+      <div style="flex:1;background:#fff;padding:14px;border-radius:10px;text-align:center;">
+        <div id="shareLabour" style="font-size:22px;font-weight:bold;"></div>
+        <div style="font-size:12px;">Total Labour</div>
+      </div>
+      <div style="flex:1;background:#fff;padding:14px;border-radius:10px;text-align:center;">
+        <div id="shareMistri" style="font-size:22px;font-weight:bold;"></div>
+        <div style="font-size:12px;">Total Mistri</div>
+      </div>
+      <div style="flex:1;background:#fff;padding:14px;border-radius:10px;text-align:center;">
+        <div id="shareCement" style="font-size:22px;font-weight:bold;"></div>
+        <div style="font-size:12px;">Total Cement</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <table style="width:100%;border-collapse:collapse;font-size:14px;background:#fff;">
+      <thead>
+        <tr style="background:#f3f4f6;">
+          <th style="padding:8px;border:1px solid #ddd;">Date</th>
+          <th style="padding:8px;border:1px solid #ddd;">Building</th>
+          <th style="padding:8px;border:1px solid #ddd;">Labour</th>
+          <th style="padding:8px;border:1px solid #ddd;">Mistri</th>
+          <th style="padding:8px;border:1px solid #ddd;">Cement</th>
+          <th style="padding:8px;border:1px solid #ddd;">Notes</th>
+        </tr>
+      </thead>
+      <tbody id="shareTableBody"></tbody>
+    </table>
+
+    <!-- APP NAME -->
+    <div style="text-align:center;margin-top:20px;font-weight:bold;font-size:14px;">
+      ConstraX
+    </div>
+
+  </div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script src="app.js"></script>
+</body>
+
+</html>
